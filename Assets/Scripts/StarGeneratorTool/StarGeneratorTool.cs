@@ -3,9 +3,12 @@ using UnityEditor;
 
 public class StarGeneratorTool : EditorWindow
 {
+    private const string k_DefaultStarsDatabaseLocation = "Assets/Databases/Default Stars Database.asset";
+    private const string k_ActiveStarsDatabaseLocationKey = "ActiveStarsDatabaseLocation";
+
+    private StarsDatabase m_starsDatabase = null;
     private StarData m_starData = null;
     private Vector2 m_scrollVector = Vector2.zero;
-    private StarData[] m_starArray = new StarData[0];
     private StarData m_selectedStar = null;
 
     [MenuItem("Tools/Star Generator")]
@@ -16,11 +19,39 @@ public class StarGeneratorTool : EditorWindow
 
     private void OnEnable()
     {
-        StartNewPreset();
+        ReinitializeNewPresetToDefault();
+        if (EditorPrefs.HasKey(k_ActiveStarsDatabaseLocationKey))
+        {
+            m_starsDatabase = AssetDatabase.LoadAssetAtPath<StarsDatabase>(EditorPrefs.GetString(k_ActiveStarsDatabaseLocationKey));
+            if (m_starsDatabase == null)
+            {
+                LoadDefaultStarsDatabase();
+            }
+        }
+        else
+        {
+            LoadDefaultStarsDatabase();
+        }
     }
 
     private void OnGUI()
     {
+        #region Stars Database
+        GUILayout.Label("Select Stars Database", EditorStyles.boldLabel);
+        EditorGUILayout.BeginVertical("Box");
+
+
+        EditorGUI.BeginChangeCheck();
+        m_starsDatabase = EditorGUILayout.ObjectField("Stars Database", m_starsDatabase, typeof(StarsDatabase), false) as StarsDatabase;
+        if (EditorGUI.EndChangeCheck())
+        {
+            EditorPrefs.SetString(k_ActiveStarsDatabaseLocationKey, AssetDatabase.GetAssetPath(m_starsDatabase.GetInstanceID()));
+        }
+
+        EditorGUILayout.EndVertical();
+        #endregion
+
+        #region Star Preset
         GUILayout.Label("\nCreate New Star Preset", EditorStyles.boldLabel);
         EditorGUILayout.BeginVertical("Box");
 
@@ -34,28 +65,33 @@ public class StarGeneratorTool : EditorWindow
         {
             GeneratePreset();
         }
+
         EditorGUILayout.EndVertical();
+        #endregion
 
-
+        #region Spawn Star
         GUILayout.Label("\nAdd Star To Scene", EditorStyles.boldLabel);
         EditorGUILayout.BeginVertical("Box");
 
         m_scrollVector = EditorGUILayout.BeginScrollView(m_scrollVector, GUILayout.MinHeight(100), GUILayout.MaxHeight(300));
-        for (int i = 0; i < m_starArray.Length; i++)
-        {
-            GUI.backgroundColor = (m_selectedStar != null && m_selectedStar == m_starArray[i]) ? Color.white : Color.grey;
-            GUI.contentColor = m_starArray[i].Color;
 
-            if (GUILayout.Button(m_starArray[i].Name))
+        for (int i = 0; i < m_starsDatabase.StarsPresets.Length; i++)
+        {
+            GUI.backgroundColor = (m_selectedStar != null && m_selectedStar == m_starsDatabase.StarsPresets[i]) ? Color.white : Color.grey;
+            GUI.contentColor = m_starsDatabase.StarsPresets[i].Color;
+
+            if (GUILayout.Button(m_starsDatabase.StarsPresets[i].Name))
             {
-                m_selectedStar = m_starArray[i];
+                m_selectedStar = m_starsDatabase.StarsPresets[i];
             }
         }
         GUI.backgroundColor = Color.white;
         GUI.contentColor = Color.white;
+
         EditorGUILayout.EndScrollView();
 
         GUILayout.Label("");
+
         GUI.color = m_selectedStar != null ? Color.white : Color.grey;
         if (GUILayout.Button("Spawn Selected Star Preset") && m_selectedStar != null)
         {
@@ -63,21 +99,21 @@ public class StarGeneratorTool : EditorWindow
         }
 
         EditorGUILayout.EndVertical();
-
-        EditorGUILayout.BeginVertical("Box");
-        EditorGUILayout.EndVertical();
-    }
-
-    private void StartNewPreset()
-    {
-        m_starData = new StarData();
-        m_starData.Mesh = Resources.GetBuiltinResource<Mesh>("New-Sphere.fbx");
+        #endregion
+        
     }
 
     private void GeneratePreset()
     {
-        ArrayUtility.Add<StarData>(ref m_starArray, m_starData);
-        StartNewPreset();
+        ArrayUtility.Add<StarData>(ref m_starsDatabase.StarsPresets, m_starData);
+        EditorUtility.SetDirty(m_starsDatabase);
+        ReinitializeNewPresetToDefault();
+    }
+
+    private void ReinitializeNewPresetToDefault()
+    {
+        m_starData = new StarData();
+        m_starData.Mesh = Resources.GetBuiltinResource<Mesh>("New-Sphere.fbx");
     }
 
     private void SpawnSelectedStarPreset()
@@ -91,6 +127,25 @@ public class StarGeneratorTool : EditorWindow
 
         var SpawnedStarData = SpawnedStar.AddComponent<StarObject>();
         SpawnedStarData.Initialize(m_selectedStar);
+    }
+
+    private void LoadDefaultStarsDatabase()
+    {
+        m_starsDatabase = AssetDatabase.LoadAssetAtPath<StarsDatabase>(k_DefaultStarsDatabaseLocation);
+        if (m_starsDatabase == null)
+        {
+            CreateDefaultStarsDatabase();
+            m_starsDatabase = AssetDatabase.LoadAssetAtPath<StarsDatabase>(k_DefaultStarsDatabaseLocation);
+        }
+        EditorPrefs.SetString(k_ActiveStarsDatabaseLocationKey, k_DefaultStarsDatabaseLocation);
+    }
+
+    private void CreateDefaultStarsDatabase()
+    {
+        StarsDatabase StarsDatabaseAsset = ScriptableObject.CreateInstance<StarsDatabase>();
+        AssetDatabase.CreateAsset(StarsDatabaseAsset, k_DefaultStarsDatabaseLocation);
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
     }
 
 }

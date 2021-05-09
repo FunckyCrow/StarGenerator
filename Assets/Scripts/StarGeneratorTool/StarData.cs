@@ -1,11 +1,17 @@
 using UnityEngine;
 
+[System.Serializable]
 public class StarData
 {
+    [SerializeField]
     private string m_starName = "Star";
+    [SerializeField]
     private float m_starRadius = 1f;
+    [SerializeField]
     private float m_gravityRadius = 5f;
+    [SerializeField]
     private Color m_starColor = Color.white;
+    [SerializeField]
     private Mesh m_starMesh = null;
 
     public string Name { get => m_starName; set => m_starName = value; }
