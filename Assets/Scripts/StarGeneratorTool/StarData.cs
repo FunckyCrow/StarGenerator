@@ -19,4 +19,14 @@ public class StarData
     public float GravityRadius { get => m_gravityRadius; set => m_gravityRadius = value; }
     public Color Color { get => m_starColor; set => m_starColor = value; }
     public Mesh Mesh { get => m_starMesh; set => m_starMesh = value; }
+    
+    public StarData() { }
+    public StarData(StarData starData)
+    {
+        m_starName = starData.Name;
+        m_starRadius = starData.Radius;
+        m_gravityRadius = starData.GravityRadius;
+        m_starColor = starData.Color;
+        m_starMesh = starData.Mesh;
+    }
 }

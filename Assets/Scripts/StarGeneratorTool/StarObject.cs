@@ -5,14 +5,14 @@ public class StarObject : MonoBehaviour
 {
     [SerializeField]
     private StarData m_starData;
-    private MeshRenderer m_meshRenderer;
     private MeshFilter m_meshFilter;
+    private MeshRenderer m_meshRenderer;
 
     public void Initialize(StarData starData)
     {
-        m_starData = starData;
-        m_meshRenderer = GetComponent<MeshRenderer>();
+        m_starData = new StarData(starData);
         m_meshFilter = GetComponent<MeshFilter>();
+        m_meshRenderer = GetComponent<MeshRenderer>();
 
         UpdateValues();
     }
@@ -32,7 +32,7 @@ public class StarObject : MonoBehaviour
     {
         gameObject.name = m_starData.Name;
         transform.localScale = new Vector3(m_starData.Radius * 2, m_starData.Radius * 2, m_starData.Radius * 2);
-        m_meshRenderer.sharedMaterial.color = m_starData.Color;
         m_meshFilter.mesh = m_starData.Mesh;
+        m_meshRenderer.sharedMaterial.color = m_starData.Color;
     }
 }
