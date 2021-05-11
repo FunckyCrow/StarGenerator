@@ -14,12 +14,14 @@ public class StarGeneratorTool : EditorWindow
     [MenuItem("Tools/Star Generator")]
     public static void ShowWindow()
     {
-        GetWindow(typeof(StarGeneratorTool));
+        var window = GetWindow(typeof(StarGeneratorTool));
+        window.minSize = new Vector2(280, 300);
+
     }
 
     private void OnEnable()
     {
-        ReinitializeNewPresetToDefault();
+        ResetNewPresetToDefault();
         if (EditorPrefs.HasKey(k_ActiveStarsDatabaseLocationKey))
         {
             m_starsDatabase = AssetDatabase.LoadAssetAtPath<StarsDatabase>(EditorPrefs.GetString(k_ActiveStarsDatabaseLocationKey));
@@ -37,8 +39,20 @@ public class StarGeneratorTool : EditorWindow
     private void OnGUI()
     {
         GUILayout.Space(4f);
+        
+        DrawStarsDatabaseVerticalBox();
+        
+        GUILayout.Space(4f);
+        
+        DrawNewStarPresetVerticalBox();
+        
+        GUILayout.Space(4f);
 
-        #region Stars Database
+        DrawExistingStarsVerticalBox();
+    }
+
+    private void DrawStarsDatabaseVerticalBox()
+    {
         GUILayout.Label("Select Stars Database", EditorStyles.boldLabel);
         EditorGUILayout.BeginVertical("Box");
         try
@@ -54,11 +68,10 @@ public class StarGeneratorTool : EditorWindow
         {
             EditorGUILayout.EndVertical();
         }
-        #endregion
+    }
 
-        GUILayout.Space(4f);
-
-        #region Star Preset
+    private void DrawNewStarPresetVerticalBox()
+    {
         GUILayout.Label("Create New Star Preset", EditorStyles.boldLabel);
         EditorGUILayout.BeginVertical("Box");
         try
@@ -69,80 +82,116 @@ public class StarGeneratorTool : EditorWindow
             m_starData.Color = EditorGUILayout.ColorField("Star Color", m_starData.Color);
             m_starData.Mesh = EditorGUILayout.ObjectField("Star Mesh", m_starData.Mesh, typeof(Mesh), false) as Mesh;
 
-            if (GUILayout.Button("Create Star Preset"))
+            EditorGUILayout.BeginHorizontal();
+            try
             {
-                GeneratePreset();
+                if (GUILayout.Button("Create Star Preset"))
+                {
+                    GeneratePreset();
+                }
+
+                if (GUILayout.Button("Reset to default"))
+                {
+                    ResetNewPresetToDefault();
+                }
             }
+            finally
+            {
+                EditorGUILayout.EndHorizontal();
+            }
+
         }
         finally
         {
             EditorGUILayout.EndVertical();
         }
-        #endregion
+    }
 
-        GUILayout.Space(4f);
-
-        #region Spawn Star
+    private void DrawExistingStarsVerticalBox()
+    {
         GUILayout.Label("Add Star To Scene", EditorStyles.boldLabel);
-        EditorGUILayout.BeginVertical("Box");
+        EditorGUILayout.BeginVertical("Box", GUILayout.ExpandHeight(false));
         try
         {
-            m_scrollVector = EditorGUILayout.BeginScrollView(m_scrollVector, GUILayout.MinHeight(100), GUILayout.MaxHeight(300));
-            try
-            {
-                for (int i = 0; i < m_starsDatabase.StarsPresets.Length; i++)
-                {
-                    GUI.backgroundColor = (m_selectedStar != null && m_selectedStar == m_starsDatabase.StarsPresets[i]) ? Color.white : Color.grey;
-                    GUI.contentColor = m_starsDatabase.StarsPresets[i].Color;
+            DrawStarsListScrollView();
 
+            GUILayout.Space(4f);
+
+            DrawSpawnStarButton();
+        }
+        finally
+        {
+            EditorGUILayout.EndVertical();
+        }
+    }
+
+    private void DrawStarsListScrollView()
+    {
+        m_scrollVector = EditorGUILayout.BeginScrollView(m_scrollVector, GUILayout.MinHeight(00), GUILayout.MaxHeight(int.MaxValue), GUILayout.ExpandHeight(true));
+        try
+        {
+            for (int i = 0; i < m_starsDatabase.StarsPresets.Length; i++)
+            {
+                EditorGUILayout.BeginHorizontal();
+                try
+                {
+                    GUI.backgroundColor = (m_selectedStar != null && m_selectedStar == m_starsDatabase.StarsPresets[i]) ? Color.white : Color.gray;
+                    GUI.contentColor = m_starsDatabase.StarsPresets[i].Color;
                     if (GUILayout.Button(m_starsDatabase.StarsPresets[i].Name))
                     {
                         m_selectedStar = m_starsDatabase.StarsPresets[i];
                     }
+                    ResetGuiColor();
+
+                    GUI.color = Color.gray;
+                    GUI.contentColor = Color.red;
+                    GUI.backgroundColor = Color.red;
+                    if (GUILayout.Button("X", GUILayout.Width(25)))
+                    {
+                        DeleteStarPreset(m_starsDatabase.StarsPresets[i]);
+                    }
+                    ResetGuiColor();
                 }
-                GUI.backgroundColor = Color.white;
-                GUI.contentColor = Color.white;
+                finally
+                {
+                    EditorGUILayout.EndHorizontal();
+                }
             }
-            finally
-            {
-                EditorGUILayout.EndScrollView();
-            }
-
-            GUILayout.Space(4f);
-
-            GUI.color = m_selectedStar != null ? Color.white : Color.grey;
-            if (GUILayout.Button("Spawn Selected Star Preset") && m_selectedStar != null)
-            {
-                SpawnSelectedStarPreset();
-            }
-
-            GUI.contentColor = Color.red;
-            if (GUILayout.Button("Delete Selected Star Preset") && m_selectedStar != null)
-            {
-                DeleteSelectedStarPreset();
-            }
-            GUI.contentColor = Color.white;
-            GUI.color = Color.white;
         }
         finally
         {
-            EditorGUILayout.EndVertical();
+            EditorGUILayout.EndScrollView();
         }
-        #endregion
-        
     }
+
+    private void DrawSpawnStarButton()
+    {
+        GUI.color = m_selectedStar != null ? Color.white : Color.gray;
+        if (GUILayout.Button("Spawn Selected Star Preset") && m_selectedStar != null)
+        {
+            SpawnSelectedStarPreset();
+        }
+        ResetGuiColor();
+    }
+
+    private void ResetGuiColor()
+    {
+        GUI.color = Color.white;
+        GUI.contentColor = Color.white;
+        GUI.backgroundColor = Color.white;
+    }
+    
+    private void ResetNewPresetToDefault()
+    {
+        m_starData = new StarData();
+        m_starData.Mesh = Resources.GetBuiltinResource<Mesh>("New-Sphere.fbx");
+    } 
 
     private void GeneratePreset()
     {
         ArrayUtility.Add<StarData>(ref m_starsDatabase.StarsPresets, m_starData);
         EditorUtility.SetDirty(m_starsDatabase);
-        ReinitializeNewPresetToDefault();
-    }
-
-    private void ReinitializeNewPresetToDefault()
-    {
-        m_starData = new StarData();
-        m_starData.Mesh = Resources.GetBuiltinResource<Mesh>("New-Sphere.fbx");
+        ResetNewPresetToDefault();
     }
 
     private void SpawnSelectedStarPreset()
@@ -158,13 +207,24 @@ public class StarGeneratorTool : EditorWindow
         SpawnedStarData.Initialize(m_selectedStar);
     }
 
-    private void DeleteSelectedStarPreset()
+    private void DeleteStarPreset(StarData starData)
     {
-        ArrayUtility.Remove<StarData>(ref m_starsDatabase.StarsPresets, m_selectedStar);
+        ArrayUtility.Remove<StarData>(ref m_starsDatabase.StarsPresets, starData);
         EditorUtility.SetDirty(m_starsDatabase);
-        m_selectedStar = null;
+        if (m_selectedStar == starData)
+        {
+            m_selectedStar = null;
+        }
     }
 
+    private void CreateDefaultStarsDatabase()
+    {
+        StarsDatabase StarsDatabaseAsset = ScriptableObject.CreateInstance<StarsDatabase>();
+        AssetDatabase.CreateAsset(StarsDatabaseAsset, k_DefaultStarsDatabaseLocation);
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+    }
+    
     private void LoadDefaultStarsDatabase()
     {
         m_starsDatabase = AssetDatabase.LoadAssetAtPath<StarsDatabase>(k_DefaultStarsDatabaseLocation);
@@ -174,14 +234,6 @@ public class StarGeneratorTool : EditorWindow
             m_starsDatabase = AssetDatabase.LoadAssetAtPath<StarsDatabase>(k_DefaultStarsDatabaseLocation);
         }
         EditorPrefs.SetString(k_ActiveStarsDatabaseLocationKey, k_DefaultStarsDatabaseLocation);
-    }
-
-    private void CreateDefaultStarsDatabase()
-    {
-        StarsDatabase StarsDatabaseAsset = ScriptableObject.CreateInstance<StarsDatabase>();
-        AssetDatabase.CreateAsset(StarsDatabaseAsset, k_DefaultStarsDatabaseLocation);
-        AssetDatabase.SaveAssets();
-        AssetDatabase.Refresh();
     }
 
 }
