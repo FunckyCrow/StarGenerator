@@ -43,3 +43,12 @@ You can also reorder the list freely. (The Star Generator will be automatically 
 # How to modify an instantiated preset in the scene
 1 - Once a star has been spawned in the scene, you can use the custom inspector "Star Object (Script)" to change the instance properties.
 Note that modifying the database won't impact the already instatiated stars / modifying the instanciated star won't edit the database.
+
+
+
+
+# How to Import/Export to JSON
+1 - While inspecting a Stars Database, below the Star Presets list in the Inspector, you'll find buttons to Import/Export to JSON.
+2 - To Export the database, press Export To JSON button and select the path to creat the JSON file in the dialog, then, press OK.
+3 - To Import the data from another database, press the Import Form JSON button and select the previously exported JSON file, then, press OK.
+The data will replace the content in the current database with the loaded one.
