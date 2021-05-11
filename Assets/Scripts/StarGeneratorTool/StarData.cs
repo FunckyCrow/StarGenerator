@@ -1,5 +1,8 @@
 using UnityEngine;
 
+/// <summary>
+/// Class representing the data of a Star.
+/// </summary>
 [System.Serializable]
 public class StarData
 {
@@ -21,6 +24,8 @@ public class StarData
     public Mesh Mesh { get => m_starMesh; set => m_starMesh = value; }
     
     public StarData() { }
+    
+    // Copy constructor required to prevent database modification from the scene.
     public StarData(StarData starData)
     {
         m_starName = starData.Name;

@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 220549c665adbea4c8ecc14a62b9a979, type: 3}
+  m_Name: ExempleStarsDatabase
+  m_EditorClassIdentifier: 
+  StarsPresets:
+  - m_starName: Sun
+    m_starRadius: 1
+    m_gravityRadius: 5
+    m_starColor: {r: 1, g: 0.82098657, b: 0.27735847, a: 1}
+    m_starMesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+  - m_starName: White Dwarf
+    m_starRadius: 0.3
+    m_gravityRadius: 12
+    m_starColor: {r: 0.7348345, g: 0.9339623, b: 0.9060357, a: 1}
+    m_starMesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+  - m_starName: Red Supergiant
+    m_starRadius: 5
+    m_gravityRadius: 15
+    m_starColor: {r: 0.9056604, g: 0.23353998, b: 0.09740115, a: 1}
+    m_starMesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+  - m_starName: Brown Dwarf
+    m_starRadius: 0.5
+    m_gravityRadius: 6
+    m_starColor: {r: 0.487007, g: 0, b: 0.6037736, a: 1}
+    m_starMesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+  - m_starName: Black Hole
+    m_starRadius: 2
+    m_gravityRadius: 40
+    m_starColor: {r: 0, g: 0, b: 0, a: 1}
+    m_starMesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}

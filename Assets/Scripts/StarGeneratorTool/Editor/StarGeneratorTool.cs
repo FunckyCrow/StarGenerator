@@ -1,6 +1,10 @@
 using UnityEngine;
 using UnityEditor;
 
+/// <summary>
+/// Class for the custom editor tool made to generate star presets.
+/// Can select the output database, create Star Preset, delete them and add them to the scene.
+/// </summary>
 public class StarGeneratorTool : EditorWindow
 {
     private const string k_DefaultStarsDatabaseLocation = "Assets/Databases/Default Stars Database.asset";
@@ -14,14 +18,16 @@ public class StarGeneratorTool : EditorWindow
     [MenuItem("Tools/Star Generator")]
     public static void ShowWindow()
     {
-        var window = GetWindow(typeof(StarGeneratorTool));
+        var window = GetWindow(typeof(StarGeneratorTool), false, "Star Generator");
         window.minSize = new Vector2(280, 300);
-
     }
 
     private void OnEnable()
     {
         ResetNewPresetToDefault();
+
+        // Looking for the last used database.
+        // If none is found, or if it fails to load, load/create the default database instead.
         if (EditorPrefs.HasKey(k_ActiveStarsDatabaseLocationKey))
         {
             m_starsDatabase = AssetDatabase.LoadAssetAtPath<StarsDatabase>(EditorPrefs.GetString(k_ActiveStarsDatabaseLocationKey));
@@ -36,6 +42,7 @@ public class StarGeneratorTool : EditorWindow
         }
     }
 
+    // Draws the window.
     private void OnGUI()
     {
         GUILayout.Space(4f);
@@ -51,6 +58,9 @@ public class StarGeneratorTool : EditorWindow
         DrawExistingStarsVerticalBox();
     }
 
+    /// <summary>
+    /// Method displaying the Stars Database selection field.
+    /// </summary>
     private void DrawStarsDatabaseVerticalBox()
     {
         GUILayout.Label("Select Stars Database", EditorStyles.boldLabel);
@@ -59,7 +69,7 @@ public class StarGeneratorTool : EditorWindow
         {
             EditorGUI.BeginChangeCheck();
             m_starsDatabase = EditorGUILayout.ObjectField("Stars Database", m_starsDatabase, typeof(StarsDatabase), false) as StarsDatabase;
-            if (EditorGUI.EndChangeCheck())
+            if (EditorGUI.EndChangeCheck() && m_starsDatabase)
             {
                 EditorPrefs.SetString(k_ActiveStarsDatabaseLocationKey, AssetDatabase.GetAssetPath(m_starsDatabase.GetInstanceID()));
             }
@@ -70,6 +80,9 @@ public class StarGeneratorTool : EditorWindow
         }
     }
 
+    /// <summary>
+    /// Method displaying the Star Presets creation section.
+    /// </summary>
     private void DrawNewStarPresetVerticalBox()
     {
         GUILayout.Label("Create New Star Preset", EditorStyles.boldLabel);
@@ -107,6 +120,9 @@ public class StarGeneratorTool : EditorWindow
         }
     }
 
+    /// <summary>
+    /// Method displaying the existing Star Presets section.
+    /// </summary>
     private void DrawExistingStarsVerticalBox()
     {
         GUILayout.Label("Add Star To Scene", EditorStyles.boldLabel);
@@ -125,36 +141,42 @@ public class StarGeneratorTool : EditorWindow
         }
     }
 
+    /// <summary>
+    /// Method displaying the scroll view containing the stars present in the active database and the buttons to delete them.
+    /// </summary>
     private void DrawStarsListScrollView()
     {
         m_scrollVector = EditorGUILayout.BeginScrollView(m_scrollVector, GUILayout.MinHeight(00), GUILayout.MaxHeight(int.MaxValue), GUILayout.ExpandHeight(true));
         try
         {
-            for (int i = 0; i < m_starsDatabase.StarsPresets.Length; i++)
+            if (m_starsDatabase)
             {
-                EditorGUILayout.BeginHorizontal();
-                try
+                for (int i = 0; i < m_starsDatabase.StarsPresets.Length; i++)
                 {
-                    GUI.backgroundColor = (m_selectedStar != null && m_selectedStar == m_starsDatabase.StarsPresets[i]) ? Color.white : Color.gray;
-                    GUI.contentColor = m_starsDatabase.StarsPresets[i].Color;
-                    if (GUILayout.Button(m_starsDatabase.StarsPresets[i].Name))
+                    EditorGUILayout.BeginHorizontal();
+                    try
                     {
-                        m_selectedStar = m_starsDatabase.StarsPresets[i];
-                    }
-                    ResetGuiColor();
+                        GUI.backgroundColor = (m_selectedStar != null && m_selectedStar == m_starsDatabase.StarsPresets[i]) ? Color.white : Color.gray;
+                        GUI.contentColor = m_starsDatabase.StarsPresets[i].Color;
+                        if (GUILayout.Button(m_starsDatabase.StarsPresets[i].Name))
+                        {
+                            m_selectedStar = m_starsDatabase.StarsPresets[i];
+                        }
+                        ResetGuiColor();
 
-                    GUI.color = Color.gray;
-                    GUI.contentColor = Color.red;
-                    GUI.backgroundColor = Color.red;
-                    if (GUILayout.Button("X", GUILayout.Width(25)))
-                    {
-                        DeleteStarPreset(m_starsDatabase.StarsPresets[i]);
+                        GUI.color = Color.gray;
+                        GUI.contentColor = Color.red;
+                        GUI.backgroundColor = Color.gray;
+                        if (GUILayout.Button("X", GUILayout.Width(25)))
+                        {
+                            DeleteStarPreset(m_starsDatabase.StarsPresets[i]);
+                        }
+                        ResetGuiColor();
                     }
-                    ResetGuiColor();
-                }
-                finally
-                {
-                    EditorGUILayout.EndHorizontal();
+                    finally
+                    {
+                        EditorGUILayout.EndHorizontal();
+                    }
                 }
             }
         }
@@ -164,6 +186,9 @@ public class StarGeneratorTool : EditorWindow
         }
     }
 
+    /// <summary>
+    /// Method displaying the button to spawn stars in the scene.
+    /// </summary>
     private void DrawSpawnStarButton()
     {
         GUI.color = m_selectedStar != null ? Color.white : Color.gray;
@@ -174,19 +199,28 @@ public class StarGeneratorTool : EditorWindow
         ResetGuiColor();
     }
 
+    /// <summary>
+    /// Method that resets the GUI colors to default (white).
+    /// </summary>
     private void ResetGuiColor()
     {
         GUI.color = Color.white;
         GUI.contentColor = Color.white;
         GUI.backgroundColor = Color.white;
     }
-    
+
+    /// <summary>
+    /// Method that resets the Star Presets creation section to the default values.
+    /// </summary>
     private void ResetNewPresetToDefault()
     {
         m_starData = new StarData();
         m_starData.Mesh = Resources.GetBuiltinResource<Mesh>("New-Sphere.fbx");
-    } 
+    }
 
+    /// <summary>
+    /// Method that adds the new Star Preset to the active presets database.
+    /// </summary>
     private void GeneratePreset()
     {
         ArrayUtility.Add<StarData>(ref m_starsDatabase.StarsPresets, m_starData);
@@ -194,6 +228,9 @@ public class StarGeneratorTool : EditorWindow
         ResetNewPresetToDefault();
     }
 
+    /// <summary>
+    /// Method that instantiate the selected Star Preset to the scene.
+    /// </summary>
     private void SpawnSelectedStarPreset()
     {
         GameObject SpawnedStar = new GameObject();
@@ -207,6 +244,10 @@ public class StarGeneratorTool : EditorWindow
         SpawnedStarData.Initialize(m_selectedStar);
     }
 
+    /// <summary>
+    /// Method that deletes a specified Star Preset form the database.
+    /// </summary>
+    /// <param name="starData"></param>
     private void DeleteStarPreset(StarData starData)
     {
         ArrayUtility.Remove<StarData>(ref m_starsDatabase.StarsPresets, starData);
@@ -217,6 +258,9 @@ public class StarGeneratorTool : EditorWindow
         }
     }
 
+    /// <summary>
+    /// Method that create the Default Star Database in the default path (cf. k_DefaultStarsDatabaseLocation).
+    /// </summary>
     private void CreateDefaultStarsDatabase()
     {
         StarsDatabase StarsDatabaseAsset = ScriptableObject.CreateInstance<StarsDatabase>();
@@ -224,7 +268,10 @@ public class StarGeneratorTool : EditorWindow
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
     }
-    
+
+    /// <summary>
+    /// Method that loads the Default Star Database in the default path (cf. k_DefaultStarsDatabaseLocation).
+    /// </summary>
     private void LoadDefaultStarsDatabase()
     {
         m_starsDatabase = AssetDatabase.LoadAssetAtPath<StarsDatabase>(k_DefaultStarsDatabaseLocation);
@@ -235,5 +282,4 @@ public class StarGeneratorTool : EditorWindow
         }
         EditorPrefs.SetString(k_ActiveStarsDatabaseLocationKey, k_DefaultStarsDatabaseLocation);
     }
-
 }

@@ -2,6 +2,9 @@ using UnityEngine;
 using UnityEditor;
 using System.IO;
 
+/// <summary>
+/// Class representing the custom inspector for the StarsDatabase ScriptableObject.
+/// </summary>
 [CustomEditor(typeof(StarsDatabase))]
 public class StarsDatabaseInspector : Editor
 {
@@ -12,11 +15,13 @@ public class StarsDatabaseInspector : Editor
         m_starsDatabase = (StarsDatabase)target;
     }
 
+    // Draws the Inspector.
     public override void OnInspectorGUI()
     {
         base.OnInspectorGUI();
-
+        
         GUILayout.Space(4f);
+
         EditorGUILayout.BeginHorizontal();
         try
         {
@@ -35,6 +40,9 @@ public class StarsDatabaseInspector : Editor
         }
     }
 
+    /// <summary>
+    /// Method that saves the Stars Database at the pasth specified in the SaveFilePanel.
+    /// </summary>
     private void SaveAsJson()
     {
         var path = EditorUtility.SaveFilePanel("Save database as Json", "", m_starsDatabase.name + ".json", "json");
@@ -46,6 +54,9 @@ public class StarsDatabaseInspector : Editor
         }
     }
 
+    /// <summary>
+    /// Method that loads the Stars Database at the pasth specified in the OpenFilePanel.
+    /// </summary>
     private void LoadFromJson()
     {
         string path = EditorUtility.OpenFilePanel("Load database fron Json", "", "json");
