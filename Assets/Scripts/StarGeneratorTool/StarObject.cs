@@ -57,6 +57,10 @@ public class StarObject : MonoBehaviour
     /// </summary>
     public void UpdateMesh()
     {
+        if (!m_meshFilter)
+        {
+            m_meshFilter = GetComponent<MeshFilter>();
+        }
         m_meshFilter.sharedMesh = m_starData.Mesh;
     }
 
@@ -65,6 +69,10 @@ public class StarObject : MonoBehaviour
     /// </summary>
     public void UpdateColor()
     {
+        if (!m_meshRenderer)
+        {
+            m_meshRenderer = GetComponent<MeshRenderer>();
+        }
         m_meshRenderer.sharedMaterial.color = m_starData.Color;
     }
 

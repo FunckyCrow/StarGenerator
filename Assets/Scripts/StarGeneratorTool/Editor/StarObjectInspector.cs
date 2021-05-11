@@ -35,7 +35,7 @@ public class StarObjectInspector : Editor
         // Color field update
         EditorGUI.BeginChangeCheck();
         m_starObject.StarData.Color = EditorGUILayout.ColorField("Star Color", m_starObject.StarData.Color);
-        if (EditorGUI.EndChangeCheck())
+        if (EditorGUI.EndChangeCheck() || !m_starObject.MeshRenderer)
         {
             m_starObject.UpdateColor();
         }
@@ -47,7 +47,7 @@ public class StarObjectInspector : Editor
         // Mesh field update
         EditorGUI.BeginChangeCheck();
         m_starObject.StarData.Mesh = EditorGUILayout.ObjectField("Star Mesh", m_starObject.StarData.Mesh, typeof(Mesh), false) as Mesh;
-        if (EditorGUI.EndChangeCheck())
+        if (EditorGUI.EndChangeCheck() || !m_starObject.MeshFilter)
         {
             m_starObject.UpdateMesh();
         }
